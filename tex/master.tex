@@ -2,7 +2,7 @@
 \documentclass[a4paper,twocolumn]{article}
 \usepackage[a4paper]{geometry}
 
-\usepackage[british]{babel}        % for german language
+\usepackage[british]{babel}        
 \usepackage[utf8]{inputenc}        % for umlauts and other non 7bit ascii things
 \usepackage[T1]{fontenc}           % this is needed for correct output of umlauts in pdf
 \usepackage{lmodern}               % use a vector based font, not a bitmap based font for T1
@@ -20,7 +20,7 @@
 
 \usepackage{graphicx}
 %\usepackage{epstopdf}
-%für plots: http://pgfplots.sourceforge.net/
+%for plots: http://pgfplots.sourceforge.net/
 %\usepackage[final]{pdfpages}
 
 \usepackage{float}
@@ -93,6 +93,11 @@
 %\usepackage[compact]{titlesec}
 \usepackage{emptypage}
 \AtBeginDocument{\addtocontents{toc}{\protect\thispagestyle{empty}}} 
+
+
+\newcommand{\VMC}[0]{VMC®}
+\newcommand{\Sik}[0]{Sikuliator}
+
 \begin{document}
 
 %\pagestyle{headings}
@@ -106,13 +111,64 @@
 \begin{abstract}
 	
 	
-	This paper describes the development of Sikuliator, 
+	This paper describes the development of \Sik, 
 	a free system for automated GUI testing distributed across many machines.
 	
 \end{abstract}
 \listoftodos
 
 \section{Context and Goals}
+\Sik{} is designed to suit the needs of the \enquote{\VMC{} - Virtual Measurement Campaign} developer team in the
+department \enquote{Mathematical Methods in Dynamics and Durability} 
+at the Fraunhofer Institute for Industrial Mathematics ITWM.\\
+GUI testing is a time consuming task and many hours have to be spent.
+Thorough testing is often only done prior to releasing a new version due to the limited resources.
+This causes regression to be spotted late in the development cycle and potentially delaying the release.
+\VMC{} has many computations which last minutes or hours leading to testers sitting idle for a long period of time.
+A tool which could execute a given sequence of steps and let the tester decide the correctness afterwards would increase the testers throughput.
+
+The bachelor thesis\cite{BachelorMapViewer}, which is based on a part of \VMC{}, mentions SikuliX\cite{SikuliX}.
+SikuliX is a framework for GUI testing and automation.
+It uses a matching operation from OpenCV\cite{OpenCV} to search for elements based on reference images.
+SikuliX also emulates keyboard and mouse input.
+The idea was to use the provided Python API in combination with a unit testing framework.
+After some more discussions it was decided that this would require too much knowledge of Python to write tests.
+Instead of using Python a new format will be developed.
+
+In accordance with the \VMC{}  development team the following goals were chosen:
+\begin{enumerate}
+	\item A free system under a free license shall be build.
+	\item GUI tests are automatically executed without manual intervention.
+	\item Tests may be executed in parallel across many machines.
+	\item Tests must be reproducible.
+	\item Simple tests must be easy to define without much programming knowledge.
+	\item The success of a test execution may be rated automatically or manually by inspecting a created screenshot.
+	\item Results are aggregated and statistics, trends and reports created.
+\end{enumerate}
+
+The main challenges are believed to be:
+\begin{enumerate}
+	\item Creating the description format to be easy but powerful enough.
+	\item Organizing tests for different versions of the software.
+	\item Ensuring reproducibility while not wasting too much time and too many resources.
+\end{enumerate}
+
+
+\Sik{} will also be integrated into Jenkins\cite{Jenkins} as a step after building the software.
+
+\subsection{Additional Ideas}
+There are several ideas for \Sik{} which will probably not be realized in the short term.
+\begin{enumerate}
+	\item Track execution duration and alert about significant changes.
+	\item Collecting coverage information while executing tests to select a relevant subset to reduce the amount of resources needed.
+	\item Use snapshots for tests executed in virtual machines to reduce the execution of common steps.
+	\item Integrate SikuliX region support instead of searching the whole screen.
+\end{enumerate}
+
+Coverage information needs instrumentation.
+Snapshots are problematic regarding reproducibility for \VMC{} because it uses a database which represents external state not contained in the snapshot.
+Region support increases the complexity for describing tests.
+Execution time may also vary on the current database load.
 
 \section{System Overview}
 
@@ -122,7 +178,7 @@
 
 
 
-\printbibliography[notkeyword=software]]
+\printbibliography[notkeyword=software]
 \printbibliography[keyword=software,title={Used software}]
 
 \end{document}
