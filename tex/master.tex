@@ -1,0 +1,130 @@
+%Dokumentation: http://texdoc.net/
+\documentclass[a4paper,twocolumn]{article}
+\usepackage[a4paper]{geometry}
+
+\usepackage[british]{babel}        % for german language
+\usepackage[utf8]{inputenc}        % for umlauts and other non 7bit ascii things
+\usepackage[T1]{fontenc}           % this is needed for correct output of umlauts in pdf
+\usepackage{lmodern}               % use a vector based font, not a bitmap based font for T1
+\usepackage[stretch=10]{microtype} % improves font placements
+%\usepackage{graphicx}
+\usepackage[breaklinks, colorlinks,draft=false
+%, citecolor=black, filecolor=black, linkcolor=black, urlcolor=black ,pdfborder=0
+]{hyperref}
+
+\usepackage{mathtools}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage[autostyle=true,german=quotes]{csquotes}
+
+\usepackage{graphicx}
+%\usepackage{epstopdf}
+%für plots: http://pgfplots.sourceforge.net/
+%\usepackage[final]{pdfpages}
+
+\usepackage{float}
+\usepackage{rotating}
+
+\usepackage[backend=biber,style=numeric]{biblatex}
+\addbibresource{../bib/Sikuliator.bib}
+
+\usepackage{todonotes}
+
+\usepackage{placeins}
+
+%\usepackage{chngcntr}
+%\counterwithout{figure}{chapter}
+%\counterwithout{table}{chapter}
+
+%\usepackage{MnSymbol}
+%\usepackage{listings}
+%\lstset{tabsize=1,showtabs=false,extendedchars
+%=false,escapebegin=\begin{text},escapeend=\end{text},literate=%
+%    {Ö}{{\"O}}1
+%    {Ä}{{\"A}}1
+%    {Ü}{{\"U}}1
+%    {ß}{{\ss}}1
+%    {ü}{{\"u}}1
+%    {ä}{{\"a}}1
+%    {ö}{{\"o}}1
+%    {~}{{\textasciitilde}}1,
+%    %breakatwhitespace=true,
+%    breaklines=true,
+%    prebreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\rhookswarrow}},
+%    postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\rcurvearrowse}},
+%    keepspaces=true,
+%    }
+
+%\usepackage{bigints}
+
+\usepackage{enumitem}
+\setlist{noitemsep}
+%\theoremstyle{definition}
+%\newtheorem{lemma}{Lemma}
+%\newtheorem{definition}{Definition}
+%\newtheorem*{note}{Bemerkung}
+%\binoppenalty=\maxdimen
+%\relpenalty=\maxdimen
+
+\let\URL\url
+\makeatletter
+\def\url#1{\@URL#1;;\@nil}
+\def\@URL#1;#2;#3\@nil{%
+  \URL{#1}\ifx\relax#2\relax\else; \URL{#2}\fi}
+\makeatother
+
+\title{Sikuliator}
+\author{Malte Schledjewski}
+%\renewcommand{\baselinestretch}{1.1}
+\linespread{1.1}
+
+\hyphenation{Sikuliator}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
+%\setlength{\belowcaptionskip}{10pt}
+%\setlength{\textfloatsep}{20.0pt plus 2.0pt minus 4.0pt}
+%\setlength{\intextsep}{12.0pt plus 2.0pt minus 0.0pt}
+%\setlength{\abovecaptionskip}{5pt}
+%\setlength{\floatsep}{20.0pt plus 2.0pt minus 10.0pt}
+
+\usepackage{parskip}
+%\usepackage[compact]{titlesec}
+\usepackage{emptypage}
+\AtBeginDocument{\addtocontents{toc}{\protect\thispagestyle{empty}}} 
+\begin{document}
+
+%\pagestyle{headings}
+%\pagestyle{myheadings}
+%\markright{Malte Schledjewski\hfill Sikuliator\hfill}
+
+%\setlength{\parskip}{2pt plus 0pt minus 0pt}
+
+%\setlength{\parindent}{0cm}
+\maketitle
+\begin{abstract}
+	
+	
+	This paper describes the development of Sikuliator, 
+	a free system for automated GUI testing distributed across many machines.
+	
+\end{abstract}
+\listoftodos
+
+\section{Context and Goals}
+
+\section{System Overview}
+
+\section{Test Definition and Organization}
+
+\section{First Development Cycle}
+
+
+
+\printbibliography[notkeyword=software]]
+\printbibliography[keyword=software,title={Used software}]
+
+\end{document}
+
+
