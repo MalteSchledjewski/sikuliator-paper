@@ -79,7 +79,7 @@
 %\renewcommand{\baselinestretch}{1.1}
 \linespread{1.1}
 
-\hyphenation{Sikuliator OpenStack RESTHeart MongoDB SikuliX OpenCV}
+\hyphenation{Sikuliator OpenStack RESTHeart MongoDB SikuliX OpenCV Akka AkkaFSM PostgreSQL}
 \setcounter{secnumdepth}{3}
 \setcounter{tocdepth}{3}
 
@@ -189,14 +189,25 @@ SikuliX is based on searching for reference images, therefore a lot of binary fi
 They must also be accessible over HTTP for integration into the web interface.
 One idea was to use an object storage system like OpenStack~Swift\cite{OpenStackSwift} or Riak~S2\cite{RiakS2}.
 These systems need a lot of knowledge to configure and maintain.
-Instead a solution based on MongoDB's GridFS\cite{GridFS} and RESTHeart\cite{RESTHeart} was chosen.
+Support for them will maybe be added in the future.
+In the meantime a solution based on MongoDB's GridFS\cite{GridFS} and RESTHeart\cite{RESTHeart} is chosen.
 It provides rather simple set up contained on one machine.
 
-The test executables will also be stored in RESTHeart so that no additional subsystem has to be integrated.
+The test executables are also stored in RESTHeart so that no additional subsystem has to be integrated.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % add system overview graphic here
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Technology Decisions}
+
+MongoDB's GridFS and RESTHeart are a complete subsystem.
+The relational database is realised by PostgreSQL\cite{PostgreSQL} because it is already used for \VMC{}.
+SikuliX provides an Java API therefore a language that runs on the JVM is needed for the client.
+Scala is chosen over Java because it is better known by the author.
+Also does integrate well into using Akka\cite{Akka}, AkkaFSM\cite{AkkaFSM} and Play\cite{Play}.
+The client is modelled as an finite state machine based on AkkaFSM.
+To keep the client, the system broker and the master node coherent Scala, Akka and Play is used across all of them.
 
 
 \section{Test Specification and Organization}
