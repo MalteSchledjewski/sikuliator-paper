@@ -111,31 +111,53 @@
 \begin{abstract}
 	
 	
-	This paper describes the development of \Sik, 
+	This paper describes the development of \Sik{}, 
 	a free system for automated GUI testing distributed across many machines.
 	
 \end{abstract}
 \listoftodos
 
-\section{Context and Goals}
-\Sik{} is designed to suit the needs of the \enquote{\VMC{} - Virtual Measurement Campaign} developer team in the
-department \enquote{Mathematical Methods in Dynamics and Durability} 
-at the Fraunhofer Institute for Industrial Mathematics ITWM.\\
-GUI testing is a time consuming task and many hours have to be spent.
-Thorough testing is often only done prior to releasing a new version due to the limited resources.
-This causes regression to be spotted late in the development cycle and potentially delaying the release.
-\VMC{} has many computations which last minutes or hours leading to testers sitting idle for a long period of time.
-A tool which could execute a given sequence of steps and let the tester decide the correctness afterwards would increase the testers throughput.
+\tableofcontents
 
-The bachelor thesis\cite{BachelorMapViewer}, which is based on a part of \VMC{}, mentions SikuliX\cite{SikuliX}.
+\section{Context}
+
+The first version of \Sik{} is designed to suit the 
+\enquote{\VMC{} - Virtual Measurement Campaign} developer team's needs in the
+department \enquote{Mathematical Methods in Dynamics and Durability} 
+at the Fraunhofer Institute for Industrial Mathematics ITWM.
+\VMC{} is an application based on clients and a central database.
+The clients are written in C++ and use the Qt Framework.
+For some part of the client an embedded browser based on Qt WebEngine is used.
+
+GUI testing \VMC{} is a time consuming task for the team.
+Tests are managed by TestLink~\cite{TestLink} but have to be executed manually inside virtual machines.
+This is time consuming especially because \VMC{} has many computations which last minutes or hours 
+leaving the tester sitting idle while testing.
+Due to the constrained resources thorough testing is often done just prior to a release
+which causes regressions to be spotted late in the development cycle and potentially delaying the release. 
+
+The team could use for example the Qt~Test~framework\cite{QtTest} which enables simulating mouse and keyboard input for the Qt framework to automate at least some parts of the test.
+%Qt Test Overview - http://doc.qt.io/qt-5/qtest-overview.html
+It does allow for checks based on the internal structure but not for visual appearance.
+
+For web interfaces there exist frameworks like Selenium\cite{Selenium} to automatically distribute GUI test execution across many browsers.
+These frameworks use the DOM and not the visual appearance.
+
+Testing a hybrid application like \VMC{}, consisting of some parts written in C++ and some running in an embedded browser, is not covered by any freely available tool the team could find.
+
+A bachelor thesis\cite{BachelorMapViewer}, which is based on a part of \VMC{}, mentions SikuliX\cite{SikuliX}.
 SikuliX is a framework for GUI testing and automation.
 It uses a matching operation from OpenCV\cite{OpenCV} to search for elements based on reference images.
-SikuliX also emulates keyboard and mouse input.
-The idea was to use the provided Python API in combination with a unit testing framework.
+SikuliX also simulates keyboard and mouse input.
+The bachelor thesis mentions the idea to use the provided Python API in combination with a unit testing framework.
 After some more discussions it was decided that this would require too much knowledge of Python to write tests.
-Instead of using Python a new format will be developed.
 
-In accordance with the \VMC{}  development team the following goals were chosen:
+\section{Goals}
+The overarching goal of this project is to build Sikuliator, a system to distribute automatic GUI tests across many machines.
+Instead of using Python to specify tests a new format will be developed.
+
+
+The following goals were chosen in accordance with the \VMC{} development team :
 \begin{enumerate}
 	\item A free system under a free license shall be build.
 	\item GUI tests are automatically executed without manual intervention.
@@ -144,84 +166,102 @@ In accordance with the \VMC{}  development team the following goals were chosen:
 	\item Simple tests must be easy to define without much programming knowledge.
 	\item The success of a test execution may be rated automatically or manually by inspecting a created screenshot.
 	\item Results are aggregated and statistics, trends and reports created.
+	\item No client needs to be installed to create tests.
 \end{enumerate}
+
+
+%A tool which could execute a given sequence of steps and let the tester decide the correctness afterwards would increase the testers throughput.
 
 The main challenges are believed to be:
 \begin{enumerate}
 	\item Creating the description format to be easy but powerful enough.
 	\item Organizing tests for different versions of the software.
 	\item Ensuring reproducibility while not wasting too much time and too many resources.
+	\item Handling external state like the database used in \VMC{}.
 \end{enumerate}
 
 
-\Sik{} will also be integrated into Jenkins\cite{Jenkins} as a step after building the software.
+\Sik{} will at some point be integrated into the Jenkins\cite{Jenkins} pipeline as a step after building the software.
 
-\subsection{Additional Ideas}
-There are several ideas for \Sik{} which will probably not be realized in the short term.
-\begin{enumerate}
-	\item Track execution duration and alert about significant changes.
-	\item Collecting coverage information while executing tests to select a relevant subset to reduce the amount of resources needed.
-	\item Use snapshots for tests executed in virtual machines to reduce the execution of common steps.
-	\item Integrate SikuliX region support instead of searching the whole screen.
-\end{enumerate}
+\section{Ideas and Features}
 
-Coverage information needs instrumentation.
-Snapshots are problematic regarding reproducibility for \VMC{} because it uses a database which represents external state not contained in the snapshot.
-Region support increases the complexity for describing tests.
-Execution time may also vary on the current database load.
-
-\section{System Overview}
-The new system will not be software that has to be installed but accessed through a web interface.
-This reduces the effort needed for installing and upgrading the system and does not have to include the internal IT team.
-This web interface will be supplied by an master node which also manages test execution.
-Currently virtual machines which reset to a specified snapshot on reboot are used for testing.
-A test client including SikuliX will be installed and integrated into a new snapshot.
-This client connects to the master node to ask for work.
-No messaging broker is used but communication happens over simple HTTP to keep the system administration simple.
-
-The virtual machines are managed by a system broker.
-It knows how to reset machines to a clean state and may do health checking.
-In the future there may be back ends based on VirtualBox\cite{VirtualBox}, OpenStack\cite{OpenStack} or the alike to dynamically spin up instances when needed.
-
-Test specifications and other related information will be stored in a relational database.
-
-SikuliX is based on searching for reference images, therefore a lot of binary files have to be stored.
-They must also be accessible over HTTP for integration into the web interface.
-One idea was to use an object storage system like OpenStack~Swift\cite{OpenStackSwift} or Riak~S2\cite{RiakS2}.
-These systems need a lot of knowledge to configure and maintain.
-Support for them will maybe be added in the future.
-In the meantime a solution based on MongoDB's GridFS\cite{GridFS} and RESTHeart\cite{RESTHeart} is chosen.
-It provides rather simple set up contained on one machine.
-
-The test executables are also stored in RESTHeart so that no additional subsystem has to be integrated.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% add system overview graphic here
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\subsection{Technology Decisions}
-
-MongoDB's GridFS and RESTHeart are a complete subsystem.
-The relational database is realised by PostgreSQL\cite{PostgreSQL} because it is already used for \VMC{}.
-SikuliX provides an Java API therefore a language that runs on the JVM is needed for the client.
-Scala is chosen over Java because it is better known by the author.
-Also does integrate well into using Akka\cite{Akka}, AkkaFSM\cite{AkkaFSM} and Play\cite{Play}.
-The client is modelled as an finite state machine based on AkkaFSM.
-To keep the client, the system broker and the master node coherent Scala, Akka and Play is used across all of them.
-
-
-\section{Test Specification and Organization}
-There were two ideas for specifying tests: either use a structured text format like XML, JSON, YAML and the like or create a domain specific language (DSL).
-Creating a DSL seemed to complex for a first version.
-Therefore a simple format based on XML is defined.
+%\subsection{Additional Ideas}
+%There are several ideas for \Sik{} which will probably not be realized in the short term.
+%\begin{enumerate}
+%	\item Track execution duration and alert about significant changes.
+%	\item Collecting coverage information while executing tests to select a relevant subset to reduce the amount of resources needed.
+%	\item Use snapshots for tests executed in virtual machines to reduce the execution of common steps.
+%	\item Integrate SikuliX region support instead of searching the whole screen.
+%\end{enumerate}
+%
+%Coverage information needs instrumentation.
+%Snapshots are problematic regarding reproducibility for \VMC{} due to the central database which represents external state not contained in the snapshot.
+%Region support increases the complexity for describing tests.
+%Execution time may also vary on the current database load.
+%
+%\section{System Overview}
+%The new system will not be software that has to be installed but accessed through a web interface.
+%This reduces the effort needed for installing and upgrading the system and does not have to include the internal IT team.
+%This web interface will be supplied by an master node which also manages test execution.
+%Currently virtual machines which reset to a specified snapshot on reboot are used for testing.
+%A test client including SikuliX will be installed and integrated into a new snapshot.
+%This client connects to the master node to ask for work.
+%No messaging broker is used but communication happens over simple HTTP to keep the system administration simple.
+%
+%The virtual machines are managed by a system broker.
+%It knows how to reset machines to a clean state and may do health checking.
+%In the future there may be back ends based on VirtualBox\cite{VirtualBox}, OpenStack\cite{OpenStack} or the alike to dynamically spin up instances when needed.
+%
+%Test specifications and other related information will be stored in a relational database.
+%
+%SikuliX is based on searching for reference images, therefore a lot of binary files have to be stored.
+%They must also be accessible over HTTP for integration into the web interface.
+%One idea was to use an object storage system like OpenStack~Swift\cite{OpenStackSwift} or Riak~S2\cite{RiakS2}.
+%These systems need a lot of knowledge to configure and maintain.
+%Support for them will maybe be added in the future.
+%In the meantime a solution based on MongoDB's GridFS\cite{GridFS} and RESTHeart\cite{RESTHeart} is chosen.
+%It provides rather simple set up contained on one machine.
+%
+%The test executables are also stored in RESTHeart so that no additional subsystem has to be integrated.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% add system overview graphic here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%\subsection{Technology Decisions}
+%
+%MongoDB's GridFS and RESTHeart are a complete subsystem.
+%The relational database is realised by PostgreSQL\cite{PostgreSQL} because it is already used for \VMC{}.
+%SikuliX provides an Java API therefore a language that runs on the JVM is needed for the client.
+%Scala is chosen over Java because it is better known by the author.
+%Also does integrate well into using Akka\cite{Akka}, AkkaFSM\cite{AkkaFSM} and Play\cite{Play}.
+%The client is modelled as an finite state machine based on AkkaFSM.
+%To keep the client, the system broker and the master node coherent Scala, Akka and Play is used across all of them.
 
 
-\section{First Development Cycle}
+\section{Test Specification}
+%There were two ideas for specifying tests: either use a structured text format like XML, JSON, YAML and the like or create a domain specific language (DSL).
+%Creating a DSL seemed to complex for a first version.
+%Therefore a simple format based on XML is defined.
 
+\subsection{XML based Test Specification Format}
+
+
+\section{Test Organization}
+\section{First Version}
+
+\subsection{Limited Scope}
+
+\subsection{Architecture}
+
+\subsection{Server}
+
+\subsection{Client}
 
 
 \printbibliography[notkeyword=software]
-\printbibliography[keyword=software,title={Used software}]
+\printbibliography[keyword=used,title={Used software}]
+\printbibliography[notkeyword=used,keyword=software,title={Other software}]
 
 \end{document}
 
