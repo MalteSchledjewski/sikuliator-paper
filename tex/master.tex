@@ -98,6 +98,11 @@
 \newcommand{\VMC}[0]{VMC®}
 \newcommand{\Sik}[0]{Sikuliator}
 
+\newcommand{\notImplemented}[0]{\item[$\times$] }
+\newcommand{\partiallyImplemented}[0]{\item[$\boxdot$] }
+%\newcommand{\implemented}[0]{\item[$\blacksquare$] }
+\newcommand{\implemented}[0]{\item[\checkmark] }
+
 \begin{document}
 
 %\pagestyle{headings}
@@ -157,7 +162,8 @@ The overarching goal of this project is to build Sikuliator, a system to distrib
 Instead of using Python to specify tests a new format will be developed.
 
 
-The following goals were chosen in accordance with the \VMC{} development team :
+The following goals were chosen in accordance with the \VMC{} development team.
+Not all of them will be included in the first version.
 \begin{enumerate}
 	\item A free system under a free license shall be build.
 	\item GUI tests are automatically executed without manual intervention.
@@ -175,30 +181,56 @@ The following goals were chosen in accordance with the \VMC{} development team :
 The main challenges are believed to be:
 \begin{enumerate}
 	\item Creating the description format to be easy but powerful enough.
-	\item Organizing tests for different versions of the software.
+	\item Managing tests for different versions of the software.
 	\item Ensuring reproducibility while not wasting too much time and too many resources.
 	\item Handling external state like the database used in \VMC{}.
 \end{enumerate}
 
 
-\Sik{} will at some point be integrated into the Jenkins\cite{Jenkins} pipeline as a step after building the software.
-
 \section{Ideas and Features}
+\paragraph{Legend}
+\begin{itemize}
+	\implemented implemented in the first version
+	\partiallyImplemented partially implemented in the first version
+	\notImplemented not implemented in the first version
+\end{itemize}
+	
+	In the following VM stands for virtual machine.
+\begin{itemize}
+	\implemented GUI tests are automatically executed.
+	\implemented Test can be executed in parallel across many machines.
+	\partiallyImplemented The success of a test execution can be
+	\begin{itemize}
+		\implemented rated automatically,
+		\notImplemented manually by comparing created screenshots to reference images.
+	\end{itemize}
+	\implemented No client needed to manage the tests.
+	\implemented Test results are aggregated.
+	\partiallyImplemented Statistics are gathered.
+	\begin{itemize}
+		\implemented Track execution time.
+	\end{itemize}
+	\notImplemented Reports can be generated as PDFs.
+	\notImplemented Notify about major changes in execution time.
+	\implemented Run tests inside VMs to have a controlled environment.
+	\notImplemented Use VM snapshots to remove redundant execution of common test beginnings.
+	\notImplemented Authentication and authorization.
+	\partiallyImplemented Web interface
+	\notImplemented Keep an audible log.
+	\notImplemented Collect coverage data and select relevant tests to execute based on change set.
+	\notImplemented Use SikuliX's region support instead of searching across the whole screen.
+	\notImplemented Use a monitoring system to check for crashed clients.
+	\notImplemented Dynamically spin up VM instances as needed.
+	\notImplemented Have an interactive mode for test creation where one client directly executes steps.
+	\notImplemented Integrate \Sik{} into the Jenkins\cite{Jenkins} pipeline as a step after building the software.
+\end{itemize}
 
-%\subsection{Additional Ideas}
-%There are several ideas for \Sik{} which will probably not be realized in the short term.
-%\begin{enumerate}
-%	\item Track execution duration and alert about significant changes.
-%	\item Collecting coverage information while executing tests to select a relevant subset to reduce the amount of resources needed.
-%	\item Use snapshots for tests executed in virtual machines to reduce the execution of common steps.
-%	\item Integrate SikuliX region support instead of searching the whole screen.
-%\end{enumerate}
-%
-%Coverage information needs instrumentation.
-%Snapshots are problematic regarding reproducibility for \VMC{} due to the central database which represents external state not contained in the snapshot.
-%Region support increases the complexity for describing tests.
-%Execution time may also vary on the current database load.
-%
+\Sik{}'s first version is developed as a graded project by Malte Schledjewski.
+Due to this the scope is limited.
+Some parts like snapshots do not have a high priority because \VMC{} has external state in the database which is not captured. Also no coverage data is gathered so instrumenting the build would cost too much time. 
+SikuliX's region support increases the complexity of describing tests and will therefore only be integrated in a later version.
+
+
 %\section{System Overview}
 %The new system will not be software that has to be installed but accessed through a web interface.
 %This reduces the effort needed for installing and upgrading the system and does not have to include the internal IT team.
@@ -240,14 +272,57 @@ The main challenges are believed to be:
 
 
 \section{Test Specification}
-%There were two ideas for specifying tests: either use a structured text format like XML, JSON, YAML and the like or create a domain specific language (DSL).
-%Creating a DSL seemed to complex for a first version.
-%Therefore a simple format based on XML is defined.
+There were two ideas for specifying tests: either use a structured text format like XML, JSON, YAML and the like or create a domain specific language (DSL).
+Creating a DSL seemed to complex and time consuming for the first version.
+Therefore a simple format based on XML is defined.
+
+The future DSL will integrate snapshots and region support.
+This needs careful language design.
+Tools like JetBrains' Meta Programming System\cite{MPS}
+%https://www.jetbrains.com/mps/
+or Eclipse Xtext\cite{Xtext} will probably be used to get some tooling like syntax completion.
+%https://eclipse.org/Xtext/
+It will probably mirror natural language more closely.
+% Click 20px to the left and 10px down @"OK button" inside $"Dialog Window"
 
 \subsection{XML based Test Specification Format}
+This format is only intended for the initial development.
+It does not include advanced features like snapshots or region support.
+Simplicity and ease of implementation are favoured over expressiveness.
+The basic structure is described in a XML schema.
+
+Tests can use reusable sequences.
+Only a single parameter is allowed for each sequence.
+A collection of interactions like clicking and entering text are represented as an XML element.
 
 
-\section{Test Organization}
+\section{Test Management}
+Managing tests for different projects, operating systems and software versions allows for many possible ways to organize tests.
+The project is used as the highest level.
+It is the container of all tests, sequences and images.
+The need for reusable libraries of common sequences and images is deemed to be too low.
+If user feedback suggest sufficient demand it may be added in the future.
+
+Project flavours are beneath the project.
+A flavour holds a tree of tests.
+Each inner node is named and all leaves are tests.
+This mirrors a typical folder structure.
+Flavours can be tagged.
+
+There is only the generic concept of flavours to differentiate across version numbers and versions for different operating systems.
+This is done because there is the use case where it makes sense to have the version number below the operating systems flavours, when for example they use different release cycles.
+The inverse may also be sensible if one product should be tested across different operating systems.
+Neither approach seem superior.
+In the future there may be a way for the user to define aspects like \enquote{operating system} or \enquote{back end}. Then the structure will be revisited.
+
+Each image, sequence and test can have many versions.
+Each version other than the first has a predecessor version.
+The versions build a tree based on this relationship.
+Images, sequences and tests can be tagged.
+
+Which image, sequence or test version to use is specified at the flavour level.
+If a new version is created all flavours containing the direct predecessor get notified.
+
 \section{First Version}
 
 \subsection{Limited Scope}
