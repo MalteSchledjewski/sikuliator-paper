@@ -12,6 +12,48 @@
 %, citecolor=black, filecolor=black, linkcolor=black, urlcolor=black ,pdfborder=0
 ]{hyperref}
 
+
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{pseudostyle}{
+	backgroundcolor=\color{backcolour},   
+	commentstyle=\color{codegreen},
+	keywordstyle=\color{magenta},
+	numberstyle=\tiny\color{codegray},
+	stringstyle=\color{codepurple},
+	basicstyle=\footnotesize,
+	breakatwhitespace=false,         
+	breaklines=true,                 
+	captionpos=b,                    
+	keepspaces=true,                 
+	numbers=left,                    
+	numbersep=5pt,                  
+	showspaces=false,                
+	showstringspaces=false,
+	showtabs=false,                  
+	tabsize=2
+}
+
+% Define Language
+\lstdefinelanguage{Pseudo}
+{
+	% list of keywords
+	morekeywords={
+		Click
+	},
+	sensitive=false, % keywords are not case-sensitive
+	morecomment=[l]{//}, % l is for line comment
+	morecomment=[s]{/*}{*/}, % s is for start and end delimiter
+	morestring=[b]" % defines that strings are enclosed in double quotes
+}
+
+
 \usepackage{mathtools}
 \usepackage{amsfonts}
 \usepackage{amsthm}
@@ -240,9 +282,6 @@ Sikuliator will offer an API but no GUI or means to create reports at first.
 
 
 %\section{System Overview}
-%The new system will not be software that has to be installed but accessed through a web interface.
-%This reduces the effort needed for installing and upgrading the system and does not have to include the internal IT team.
-%This web interface will be supplied by an master node which also manages test execution.
 %Currently virtual machines which reset to a specified snapshot on reboot are used for testing.
 %A test client including SikuliX will be installed and integrated into a new snapshot.
 %This client connects to the master node to ask for work.
@@ -251,9 +290,7 @@ Sikuliator will offer an API but no GUI or means to create reports at first.
 %The virtual machines are managed by a system broker.
 %It knows how to reset machines to a clean state and may do health checking.
 %In the future there may be back ends based on VirtualBox\cite{VirtualBox}, OpenStack\cite{OpenStack} or the alike to dynamically spin up instances when needed.
-%
-%Test specifications and other related information will be stored in a relational database.
-%
+
 %SikuliX is based on searching for reference images, therefore a lot of binary files have to be stored.
 %They must also be accessible over HTTP for integration into the web interface.
 %One idea was to use an object storage system like OpenStack~Swift\cite{OpenStackSwift} or Riak~S2\cite{RiakS2}.
@@ -267,17 +304,6 @@ Sikuliator will offer an API but no GUI or means to create reports at first.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% add system overview graphic here
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\subsection{Technology Decisions}
-%
-%MongoDB's GridFS and RESTHeart are a complete subsystem.
-%The relational database is realised by PostgreSQL\cite{PostgreSQL} because it is already used for \VMC{}.
-%SikuliX provides an Java API therefore a language that runs on the JVM is needed for the client.
-%Scala is chosen over Java because it is better known by the author.
-%Also does integrate well into using Akka\cite{Akka}, AkkaFSM\cite{AkkaFSM} and Play\cite{Play}.
-%The client is modelled as an finite state machine based on AkkaFSM.
-%To keep the client, the system broker and the master node coherent Scala, Akka and Play is used across all of them.
-
 
 \section{Test Specification}
 There were two ideas for specifying tests: either use a structured text format like XML, JSON, YAML and the like or create a domain specific language (DSL).
@@ -287,11 +313,16 @@ Therefore a simple format based on XML is defined.
 The future DSL will integrate snapshots and region support.
 This needs careful language design.
 Tools like JetBrains' Meta Programming System\cite{MPS}
-%https://www.jetbrains.com/mps/
 or Eclipse Xtext\cite{Xtext} will probably be used to get some tooling support like syntax completion.
-%https://eclipse.org/Xtext/
-It will probably mirror natural language more closely.
-% Click 20px to the left and 10px down @"OK button" inside $"Dialog Window"
+It will probably mirror natural language more closely, 
+as in example \ref{lst:SyntaxExample} where the @ introduces an image name and the \$ a region name:
+
+\lstset{style=pseudostyle,emph={@,\$}, emphstyle=\color{codegreen}}
+\renewcommand{\lstlistingname}{Example}
+\begin{lstlisting}[language=Pseudo,caption={Example for possible syntax},label={lst:SyntaxExample}]
+Click 20px to the left and 10px down 
+@"OK button" inside $"Dialog Window"
+\end{lstlisting}
 
 \subsection{XML based Test Specification Format}
 This format is only intended for the initial development.
@@ -348,7 +379,7 @@ In the future this constellation will be extended by a system provider which can
 
 All non-binary data is stored inside a relational database.
 The binary data, consisting of images and executables, is stored inside an object storage system.
-
+The object storage system must provide http based access because the images are needed for the web interface.
 
 \subsection{Client}
 The client uses SikuliX's API.
