@@ -75,6 +75,8 @@
 
 \usepackage{placeins}
 
+\usepackage{dblfloatfix}
+
 %\usepackage{chngcntr}
 %\counterwithout{figure}{chapter}
 %\counterwithout{table}{chapter}
@@ -109,19 +111,20 @@
 %\binoppenalty=\maxdimen
 %\relpenalty=\maxdimen
 
-\let\URL\url
-\makeatletter
-\def\url#1{\@URL#1;;\@nil}
-\def\@URL#1;#2;#3\@nil{%
-  \URL{#1}\ifx\relax#2\relax\else; \URL{#2}\fi}
-\makeatother
+%Multiples URLs in reference:
+%\let\URL\url
+%\makeatletter
+%\def\url#1{\@URL#1;;\@nil}
+%\def\@URL#1;#2;#3\@nil{%
+%  \URL{#1}\ifx\relax#2\relax\else; \URL{#2}\fi}
+%\makeatother
 
 \title{Sikuliator}
 \author{Malte Schledjewski}
 %\renewcommand{\baselinestretch}{1.1}
 \linespread{1.1}
 
-\hyphenation{Sikuliator OpenStack RESTHeart MongoDB SikuliX OpenCV Akka AkkaFSM PostgreSQL MariaDB VM VMs}
+\hyphenation{Sikuliator OpenStack RESTHeart MongoDB SikuliX OpenCV Akka AkkaFSM PostgreSQL MariaDB VM VMs RESTful}
 \setcounter{secnumdepth}{3}
 \setcounter{tocdepth}{3}
 
@@ -149,7 +152,7 @@
 
 %\pagestyle{headings}
 %\pagestyle{myheadings}
-%\markright{Malte Schledjewski\hfill Sikuliator\hfill}
+%\markright{Malte Schledjewski\hfill \Sik{}\hfill}
 
 %\setlength{\parskip}{2pt plus 0pt minus 0pt}
 
@@ -160,7 +163,7 @@
 	
 	This paper describes the development of \Sik{}, 
 	a free system for automated GUI testing distributed across many machines.
-	
+	\todo{abstract}
 \end{abstract}
 \listoftodos
 
@@ -169,7 +172,7 @@
 \section{Context}
 
 The first version of \Sik{} is designed to suit the 
-\emph{\VMC{} - Virtual Measurement Campaign}\cite{VMConline} developer team's needs in the
+\emph{\VMC{} - Virtual Measurement Campaign}~\cite{VMConline} developer team's needs in the
 department \emph{Mathematical Methods in Dynamics and Durability} 
 at the Fraunhofer Institute for Industrial Mathematics ITWM.
 \VMC{} is an application based on clients and a central database.
@@ -183,24 +186,23 @@ leaving the tester sitting idle while testing.
 Thorough testing is often done just prior to a release due to constrained resources.
 This causes regressions to be spotted late in the development cycle and potentially delaying the release. 
 
-The team could use for example the Qt~Test~framework\cite{QtTest} which enables simulating mouse and keyboard input for the Qt framework to automate at least some parts of the test.
-%Qt Test Overview - http://doc.qt.io/qt-5/qtest-overview.html
+The team could use for example the Qt~Test~framework~\cite{QtTest} which enables simulating mouse and keyboard input for the Qt framework to automate at least some parts of the test.
 It does allow for checks based on the internal structure but not for visual appearance.
 
-For web interfaces there exist frameworks like Selenium\cite{Selenium} to automatically distribute GUI test execution across many browsers.
+For web interfaces there exist frameworks like Selenium~\cite{Selenium} to automatically distribute GUI test execution across many browsers.
 These frameworks use the DOM and not the visual appearance.
 
 Testing a hybrid application like \VMC{}, consisting of some parts written in C++ and some running in an embedded browser, is not covered by any freely available tool the team could find.
 
-A bachelor thesis\cite{BachelorMapViewer}, which is based on a part of \VMC{}, mentions SikuliX\cite{SikuliX}.
+A bachelor thesis~\cite{BachelorMapViewer}, which is based on a part of \VMC{}, mentions SikuliX~\cite{SikuliX}.
 SikuliX is a framework for GUI testing and automation.
-It uses a matching operation from OpenCV\cite{OpenCV} to search for elements based on reference images.
+It uses a matching operation from OpenCV~\cite{OpenCV} to search for elements based on reference images.
 SikuliX also simulates keyboard and mouse input.
 The bachelor thesis mentions the idea to use the provided Python API in combination with a unit testing framework.
 After some more discussions it was decided that this would require too much knowledge of Python to write tests.
 
 \section{Goals}
-The overarching goal of this project is to build Sikuliator, a system to distribute automatic GUI tests across many machines.
+The overarching goal of this project is to build \Sik{}, a system to distribute automatic GUI tests across many machines.
 Instead of using Python to specify tests a new format will be developed.
 
 
@@ -264,7 +266,7 @@ The main challenges are believed to be:
 	\notImplemented Use a monitoring system to check for crashed clients.
 	\notImplemented Dynamically spin up VM instances as needed.
 	\notImplemented Have an interactive mode for test creation where one client directly executes steps.
-	\notImplemented Integrate \Sik{} into the Jenkins\cite{Jenkins} pipeline as a step after building the software.
+	\notImplemented Integrate \Sik{} into the Jenkins~\cite{Jenkins} pipeline as a step after building the software.
 \end{itemize}
 
 \Sik{}'s first version is developed as a graded project by Malte Schledjewski.
@@ -274,36 +276,13 @@ Some parts like snapshots do not have a high priority because \VMC{} has externa
 Also no coverage data is already gathered so instrumenting the build would cost too much time. 
 SikuliX's region support increases the complexity of describing tests and will therefore only be integrated in a later version.
 
-Sikuliator will run in the intranet at the ITWM.
+\Sik{} will run in the intranet at the ITWM.
 Also it will at first be used my a limited amount of testers.
 Therefore no user or rights management will be necessary for the initial version.
 
-Sikuliator will offer an API but no GUI or means to create reports at first.
+\Sik{} will offer an API but no GUI or means to create reports at first.
 
 
-%\section{System Overview}
-%Currently virtual machines which reset to a specified snapshot on reboot are used for testing.
-%A test client including SikuliX will be installed and integrated into a new snapshot.
-%This client connects to the master node to ask for work.
-%No messaging broker is used but communication happens over simple HTTP to keep the system administration simple.
-%
-%The virtual machines are managed by a system broker.
-%It knows how to reset machines to a clean state and may do health checking.
-%In the future there may be back ends based on VirtualBox\cite{VirtualBox}, OpenStack\cite{OpenStack} or the alike to dynamically spin up instances when needed.
-
-%SikuliX is based on searching for reference images, therefore a lot of binary files have to be stored.
-%They must also be accessible over HTTP for integration into the web interface.
-%One idea was to use an object storage system like OpenStack~Swift\cite{OpenStackSwift} or Riak~S2\cite{RiakS2}.
-%These systems need a lot of knowledge to configure and maintain.
-%Support for them will maybe be added in the future.
-%In the meantime a solution based on MongoDB's GridFS\cite{GridFS} and RESTHeart\cite{RESTHeart} is chosen.
-%It provides rather simple set up contained on one machine.
-%
-%The test executables are also stored in RESTHeart so that no additional subsystem has to be integrated.
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% add system overview graphic here
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Test Specification}
 There were two ideas for specifying tests: either use a structured text format like XML, JSON, YAML and the like or create a domain specific language (DSL).
@@ -312,10 +291,10 @@ Therefore a simple format based on XML is defined.
 
 The future DSL will integrate snapshots and region support.
 This needs careful language design.
-Tools like JetBrains' Meta Programming System\cite{MPS}
-or Eclipse Xtext\cite{Xtext} will probably be used to get some tooling support like syntax completion.
-It will probably mirror natural language more closely, 
-as in example \ref{lst:SyntaxExample} where the @ introduces an image name and the \$ a region name:
+Tools like JetBrains' Meta Programming System~\cite{MPS}
+or Eclipse Xtext~\cite{Xtext} will probably be used to get some tooling support like syntax completion.
+The DSL will probably mirror natural language more closely, 
+as in example~\ref{lst:SyntaxExample} where the @ introduces an image name and the \$ a region name:
 
 \lstset{style=pseudostyle,emph={@,\$}, emphstyle=\color{codegreen}}
 \renewcommand{\lstlistingname}{Example}
@@ -332,10 +311,11 @@ The basic structure is described in a XML schema.
 
 Tests can use reusable sequences.
 Only a single parameter is allowed for each sequence.
-A collection of interactions like clicking and entering text are represented as an XML element.
+A collection of interactions like clicking and entering text are represented as XML elements.
 \todo{More details}
 
 \section{Test Management}
+\todo{rewrite}
 Managing tests for different projects, operating systems and software versions allows for many possible ways to organize tests.
 The project is used as the highest level.
 It is the container of all tests, sequences and images.
@@ -359,12 +339,12 @@ Each version other than the first has a predecessor version.
 The versions build a tree based on this relationship.
 Images, sequences and tests can be tagged.
 
-Which image, sequence or test version to use is specified at the flavour level.
+Which image, sequence or test version to use is specified at the flavour level to keep consistency.
 If a new version is created all flavours containing the direct predecessor get notified.
 
 \section{First Version}
 \subsection{Architecture}
-One of Sikuliator's goals is to create tests without having to install software on many machines.
+One of \Sik{}'s goals is to create tests without having to install software on many machines.
 Therefore a web interface will be created in the future.
 It will be provided by the so called master node.
 The master provides a web API (not necessarily RESTful) which will be used by the web interface.
@@ -374,41 +354,71 @@ Clients, running inside VMs, connect to the master node and ask for work.
 A pull based approach is used.
 If no work is available the client goes into a sleep mode and must be awaken by the master.
 To keep the deployment small, no message oriented middleware is used but communication happens over HTTP.
+The VMs containing the client reset to a snapshot to create an untainted test environment.
 
-In the future this constellation will be extended by a system provider which can spin up VMs on demand.
+In the future this constellation of master node and clients will be extended by a system provider which can spin up VMs on demand.
 
 All non-binary data is stored inside a relational database.
 The binary data, consisting of images and executables, is stored inside an object storage system.
 The object storage system must provide http based access because the images are needed for the web interface.
 
+The server and clients together are a distributed system.
+Still no health checking is introduced in this version.
+Consul~\cite{Consul} was considered and may be integrated in the future or the system provider does the checking.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% add system overview graphic here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Client}
 The client uses SikuliX's API.
 The API is Java based therefore a language running on the JVM is necessary.
 Scala is used because the developer knows it better than Java.
 
-The client is modelled as a finite state machine.
-\todo{FSM graphic}
+The client runs inside a VM which automatically resets on reboot.
+This ensures a reproducible test environment.
+For the current version RollBack Home Edition~\cite{RollBack} is used.
 
-For the implementation the Play Framwork\cite{Play}, Akka\cite{Akka} and AkkaFSM\cite{AkkaFSM} are used.
-They all are part of the \emph{Typesafe Reactive Platform}\cite{TypesafeRP}
-%https://www.typesafe.com/products/typesafe-reactive-platform
+\begin{figure*}[btp]
+	\centering
+	\includegraphics[width=1.0\linewidth]{../img/client_fsm}
+	\caption{Client FSM}
+	\label{fig:fsm}
+\end{figure*}
+A finite state machine, as seen in \autoref{fig:fsm}, is used to model the client:
+In the initial state the client asks for work.
+The client goes into sleep mode if no work is available.
+Otherwise it goes into execution state and tries to execute the given commands.
+The client goes into an upload state after completing the execution.
+After successfully uploading the images and results the client goes into the work fetching state or the dirty state depending on whether the test was successful.
+A failed tests leaves the program in an undefined state.
+The dirty state therefore initiates a reset.
+
+An error state is entered when an internal error happens inside the client.
+The client can be configured to automatically reset or leave the system unchanged for inspection.
+
+For the implementation Akka~\cite{Akka}, AkkaFSM~\cite{AkkaFSM} and the Play framework~\cite{Play} are used.
+They all are part of the \emph{Typesafe Reactive Platform}~\cite{TypesafeRP}.
 
 \subsection{Server}
-\todo{API}
-\todo{Swagger}
-%https://openapis.org/
 
-% maybe in the future:
-%http://jsonapi.org/
+Initially the server only provides an API.
+This API will be augmented by a web interface in the future.
 
+The initial API is specified in Swagger~\cite{Swagger} which is the basis for the \emph{Open API Initiative}~\cite{OpenAPI}.
+Keeping the API completely RESTful was not a concern.
+The structure may also be changed in the future to follow the \emph{JSON API}~\cite{JSONAPI} specification.
+
+\todo{API structure}
+
+To keep the code bases consistent Akka and the Play framework are used for the implementation.
 \subsection{Database}
 \VMC{} uses PostgreSQL~\cite{PostgreSQL}.
-Due to the familiarity, it will be used for Sikuliator, too.
+Due to the familiarity, it will be used for \Sik{}, too.
 Compatibility to other systems like MariaDB~\cite{MariaDB} was not regarded in this release.
 
 \subsection{Object Storage System}
-Several object storage systems were considered: OpenStack~Swift\cite{OpenStackSwift}, Riak~S2\cite{RiakS2} and 
-MongoDB's\cite{MongoDB} GridFS\cite{GridFS} combined with RESTHeart\cite{RESTHeart}.
+Several object storage systems were considered: OpenStack~Swift~\cite{OpenStackSwift}, Riak~S2~\cite{RiakS2} and 
+MongoDB's~\cite{MongoDB} GridFS~\cite{GridFS} combined with RESTHeart~\cite{RESTHeart}.
 OpenStack~Swift and Riak~S2 need a lot of knowledge to configure and maintain.
 Both usually run on a Linux cluster of at least three nodes.
 MongoDB with RESTHeart can easily be installed on a single node.
@@ -419,9 +429,11 @@ For example it could be used to create VMs, store VM images or provide identific
 
 \section{Future Roadmap}
 
+\todo{roadmap}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \printbibliography[notkeyword=software,resetnumbers=true,prefixnumbers=R]
 \printbibliography[keyword=used,title={Used software},resetnumbers=true,prefixnumbers=US]
 \printbibliography[notkeyword=used,keyword=software,title={Other software},resetnumbers=true,prefixnumbers=OS]
