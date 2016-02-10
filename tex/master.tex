@@ -189,7 +189,7 @@ Thorough testing is often done just prior to a release due to constrained resour
 This causes regressions to be spotted late in the development cycle and potentially delaying the release. 
 
 The team could use for example the Qt~Test~framework~\cite{QtTest} which enables simulating mouse and keyboard input for the Qt framework to automate at least some parts of the test.
-It does allow for checks based on the internal structure but not for visual appearance.
+It does allow for checks based on the internal code structure but not based on the visual appearance.
 
 For web interfaces there exist frameworks like Selenium~\cite{Selenium} to automatically distribute GUI test execution across many browsers.
 These frameworks use the DOM and not the visual appearance.
@@ -254,9 +254,9 @@ The main challenges are believed to be:
 	\end{itemize}
 	\implemented No installed client needed to manage the tests.
 	\implemented Test results are aggregated.
-	\partiallyImplemented Statistics are gathered.
+	\notImplemented Statistics are gathered.
 	\begin{itemize}
-		\implemented Track execution time.
+		\notImplemented Track execution time.
 	\end{itemize}
 	\notImplemented Reports can be generated as PDFs.
 	\notImplemented Notify about major changes in execution time.
@@ -279,7 +279,7 @@ It is a proof of concept.
 Some parts like snapshots do not have a high priority because \VMC{} has external state in the database which is not captured by the snapshots. 
 Also no coverage data is currently gathered so instrumenting the build would cost too much time. 
 SikuliX supports regions which are parts of the screen.
-Instead of searching the whole screen SikuliX can be told to only search a region which can save a lot of time. 
+SikuliX can be told to only search a region instead of the whole screen which can save a lot of time. 
 Support for regions increases the complexity of describing tests and will therefore only be integrated in a later version.
 
 \Sik{} will run in the intranet at the ITWM.
@@ -317,20 +317,21 @@ For example, there is no way to enter special keys or keyboard combinations.
 
 Tests do not have parameters but can use reusable sequences.
 Only a single parameter is allowed for each sequence to reduce the possible complexity.
-Several interactions like clicking and entering text are represented as XML elements.
+Several interactions like clicking or entering text are represented as XML elements.
 
 The basic structure is described in a XML schema.
 It is not capable of modelling all concepts or restrictions.
-Still, XML schema can be used in many programming languages to generate boilerplate code.
+Still the XML schema can be used in many programming languages to generate boilerplate code.
 
 \section{Test Management}
-The project is at the top of the hierarchy.
+Managing all the tests requires a hierarchy.
+The \emph{project} is at the top of this hierarchy.
 It represents a container for all reference images, tests, et~cetera.
 The need for reusable libraries of common objects is deemed to be too low because they can be reused inside the project.
 If user feedback suggest sufficient demand, it may be added in the future.
 
 The tests and reference images will differ by things like operating system or different product version.
-Therefore the notion of a project flavour is introduced.
+Therefore the notion of a project \emph{flavour} is introduced.
 This concept is more flexible than having project configurations with fixed aspects like operating system or product version.
 It allows the user to have all needed combinations in parallel.
 Forcing, for example, a hierarchy of version on top with operating system below may become problematic for products that have different version numbers per operating system.
@@ -339,7 +340,7 @@ In the future there may be a way for the user to define aspects like \enquote{op
 Another way would be to tag the flavours.
 The hierarchy may therefore change in the future based on feedback and experience.
 
-A flavour is basically a collection of tests.
+A flavour is basically a collection of \emph{tests}.
 The tests are organized in a tree structure with tests as leave nodes and category names as inner nodes.
 This mirrors a typical folder structure.
 
@@ -357,7 +358,7 @@ It also keeps consistency across the different tests in a flavour.
 Otherwise calling a sequence in one test may do something different than a call in another test of the same flavour or reference images may be different.
 This would reduce the readability of tests because one would have to keep in mind the currently used versions.
 
-If a new version is created all flavours containing the direct predecessor get notified.
+If a new version is created, all flavours containing the direct predecessor get notified.
 The flavour may then be updated to use the new version.
 
 \section{First Version}
@@ -374,8 +375,7 @@ A pull based approach is used.
 To keep the deployment small, no message oriented middleware is used but communication happens over HTTP.
 The VMs containing the client reset to a snapshot to create a clean and reproducible test environment.
 
-In the future this constellation of master node and clients will be extended by a system provider which can spin up VMs on demand.
-So that VMs do not have to run all the time.
+In the future this constellation of master node and clients will be extended by a system provider which can spin up VMs on demand so that VMs do not have to run all the time.
 
 All non-binary data is stored inside a relational database.
 
@@ -431,7 +431,7 @@ In the future the client can be configured to automatically reset or leave the s
 
 For the implementation Akka~\cite{Akka}, AkkaFSM~\cite{AkkaFSM}, SikuliX and the Play framework~\cite{Play} are used.
 They all are part of the \emph{Typesafe Reactive Platform}~\cite{TypesafeRP}.
-Scalaxb~\cite{scalaxb} was used to create Scala case classes and a parser based on the test specifications XML schema.
+Scalaxb~\cite{scalaxb} was used to create Scala case classes and a parser based on the test specification's XML schema.
 
 The proof of concept does not support sequences and does not ask for additional work.
 Not all operations are implemented.
@@ -455,7 +455,7 @@ An excerpt of the generated documentation can be seen in \autoref{fig:apiStudio}
 
 \begin{figure*}[htbp]
 	\centering
-	\includegraphics[width=0.8\linewidth]{../img/apiStudio}
+	\includegraphics[width=1.0\linewidth]{../img/apiStudio}
 	\caption{API Documentation excerpt generated by API~Studio}
 	\label{fig:apiStudio}
 \end{figure*}
@@ -494,21 +494,24 @@ The documentation on this is sparse and therefore the planned tagging feature fo
 \autoref{lst:EditorXML} shows a simple test which opens the start menu, searches for the editor, opens it and verifies that it started. 
 The matching Sikuliator output is shown in \autoref{lst:EditorOutput}.
 Both files are bundled with SikuliX' debug log and the used images in the documentation.
+\begin{figure}
+%\begin{minipage}{\linewidth}
+	\begin{lstlisting}[language=XML,caption={Example test case specification},label={lst:EditorXML}]
+	<?xml version="1.0" encoding="utf-8"?>
+	<spec:test name="OpenEditor"  xmlns:spec="http://www.example.org/Sikuliator">
+	<spec:click similarity="0.95">WindowsStartButton</spec:click>
+	<spec:enterText>
+	<spec:text>Editor</spec:text>
+	</spec:enterText>
+	<spec:click similarity="0.95">EditorButton</spec:click>
+	<spec:waitForSomethingToBeThere similarity="0.95" secondsToWait="10">EditorTop</spec:waitForSomethingToBeThere>
+	</spec:test>
+	\end{lstlisting}
+%\end{minipage}
+\end{figure}
 
-\begin{minipage}{\linewidth}
-\begin{lstlisting}[language=XML,caption={Example test case specification},label={lst:EditorXML}]
-<?xml version="1.0" encoding="utf-8"?>
-<spec:test name="OpenEditor"  xmlns:spec="http://www.example.org/Sikuliator">
-<spec:click similarity="0.95">WindowsStartButton</spec:click>
-<spec:enterText>
-<spec:text>Editor</spec:text>
-</spec:enterText>
-<spec:click similarity="0.95">EditorButton</spec:click>
-<spec:waitForSomethingToBeThere similarity="0.95" secondsToWait="10">EditorTop</spec:waitForSomethingToBeThere>
-</spec:test>
-\end{lstlisting}
-\end{minipage}
-\begin{minipage}{\linewidth}
+\begin{figure}
+%\begin{minipage}{\linewidth}
 \begin{lstlisting}[caption={Sikuliator's output for the example test case},label={lst:EditorOutput}]
 clicked on WindowsStartButton
 entering text: Editor
@@ -516,7 +519,8 @@ clicked on EditorButton
 found EditorTop
 finished successfully
 \end{lstlisting}
-\end{minipage}
+%\end{minipage}
+\end{figure}
 This proof of concept shows the feasibility of the concept but is also inefficient due to no snapshot support.
 It also shows the problems of engineering systems consisting of many parts and frameworks.
 
@@ -541,7 +545,7 @@ Therefore the SikuliX libraries had to be manually downloaded and added to the p
 
 Writing idiomatic Scala and using the libraries' and frameworks' best practices takes experience.
 The type \texttt{Option} which can be \texttt{Some(wrappedValue)} or \texttt{None} is used in large parts of the master.
-Using \texttt{Try} which can be \texttt{Success(wrappedValue)} or \texttt{Failure(exception)} would be semantically better as return types for functions which may fail like for example querying the database.
+Using \texttt{Try} which can be \texttt{Success(wrappedValue)} or \texttt{Failure(exception)} would be semantically better as the return type for functions which may fail like for example querying the database.
 Static analysers may also help to increase code quality.
 
 Several days were spent on researching object storage systems.
@@ -593,8 +597,10 @@ The DSL will be developed at a later point in time after creating the GUI and it
 The language development should be guided by the experiences made while writing several test specifications in the XML format.
 This will require a large corpus to get a got feeling for common constructs and needed additions.
 
-
-
+\subsection*{Integration of other Systems}
+An object storage system will be introduced in the long term.
+When the system provider is being developed it may also make sense to use available software for service discovery and health checking.
+Existing identity providers may also be integrated.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
