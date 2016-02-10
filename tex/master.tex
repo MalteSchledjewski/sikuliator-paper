@@ -1,5 +1,5 @@
 %Dokumentation: http://texdoc.net/
-\documentclass[a4paper,twocolumn]{article}
+\documentclass[a4paper,twocolumn,twoside]{article}
 \usepackage[a4paper]{geometry}
 
 \usepackage[british]{babel}        
@@ -119,7 +119,9 @@
 %  \URL{#1}\ifx\relax#2\relax\else; \URL{#2}\fi}
 %\makeatother
 
-\title{Sikuliator}
+\title{Sikuliator\\ 
+	\large Status Report}
+
 \author{Malte Schledjewski}
 %\renewcommand{\baselinestretch}{1.1}
 \linespread{1.1}
@@ -159,13 +161,13 @@
 %\setlength{\parindent}{0cm}
 \maketitle
 \begin{abstract}
-	
-	
 	This paper describes the development of \Sik{}, 
 	a free system for automated GUI testing distributed across many machines.
-	\todo{abstract}
+	It currently is a proof of concept consisting of a central web server offering an API and 
+	a client software which executes tests.
+	Tests can be specified in a XML based format using reference images.
 \end{abstract}
-\listoftodos
+%\listoftodos
 
 \tableofcontents
 
@@ -203,7 +205,7 @@ After some more discussions it was decided that this would require too much know
 
 \section{Goals}
 The overarching goal of this project is to build \Sik{}, a system to distribute automatic GUI tests across many machines.
-Instead of using Python to specify tests a new format will be developed.
+Instead of using Python to specify tests, a new format will be developed.
 
 
 The following goals were chosen in accordance with the \VMC{} development team.
@@ -239,7 +241,9 @@ The main challenges are believed to be:
 	\notImplemented not implemented in the first version
 \end{itemize}
 	
+	Possible features and other ideas like possible integration were gathered together with some \VMC{} developers.
 	In the following VM stands for virtual machine.
+	
 \begin{itemize}
 	\implemented GUI tests are automatically executed.
 	\implemented Test can be executed in parallel across many machines.
@@ -248,7 +252,7 @@ The main challenges are believed to be:
 		\implemented rated automatically,
 		\notImplemented manually by comparing created screenshots to reference images.
 	\end{itemize}
-	\implemented No client needed to manage the tests.
+	\implemented No installed client needed to manage the tests.
 	\implemented Test results are aggregated.
 	\partiallyImplemented Statistics are gathered.
 	\begin{itemize}
@@ -271,9 +275,9 @@ The main challenges are believed to be:
 
 \Sik{}'s first version is developed as a graded project by Malte Schledjewski.
 The available time is limited and therefore the first version's scope is reduced.
-It will be more of a proof of concept.
-Some parts like snapshots do not have a high priority because \VMC{} has external state in the database which is not captured. 
-Also no coverage data is already gathered so instrumenting the build would cost too much time. 
+It is a proof of concept.
+Some parts like snapshots do not have a high priority because \VMC{} has external state in the database which is not captured by the snapshots. 
+Also no coverage data is currently gathered so instrumenting the build would cost too much time. 
 SikuliX's region support increases the complexity of describing tests and will therefore only be integrated in a later version.
 
 \Sik{} will run in the intranet at the ITWM.
@@ -289,12 +293,12 @@ There were two ideas for specifying tests: either use a structured text format l
 Creating a DSL seemed to complex and time consuming for the first version.
 Therefore a simple format based on XML is defined.
 
-The future DSL will integrate snapshots and region support.
-This needs careful language design.
+A future DSL will integrate snapshots and region support.
+This needs careful language design and is a project in itself.
 Tools like JetBrains' Meta Programming System~\cite{MPS}
-or Eclipse Xtext~\cite{Xtext} will probably be used to get some tooling support like syntax completion.
+or Eclipse Xtext~\cite{Xtext} may be used to get some tooling support like syntax completion.
 The DSL will probably mirror natural language more closely, 
-as in example~\ref{lst:SyntaxExample} where the @ introduces an image name and the \$ a region name:
+as in example~\ref{lst:SyntaxExample} where the \texttt{@} introduces an image name and the \texttt{\$} a region name:
 
 \lstset{style=pseudostyle,emph={@,\$}, emphstyle=\color{codegreen}}
 \renewcommand{\lstlistingname}{Example}
@@ -303,15 +307,15 @@ Click 20px to the left and 10px down
 @"OK button" inside $"Dialog Window"
 \end{lstlisting}
 
-\subsection{XML based Test Specification Format}
+\subsection*{XML based Test Specification Format}
 This format is only intended for the initial development.
 It does not include advanced features like snapshots or region support.
 Simplicity and ease of implementation are favoured over expressiveness.
 The basic structure is described in a XML schema.
 
 Tests can use reusable sequences.
-Only a single parameter is allowed for each sequence.
-A collection of interactions like clicking and entering text are represented as XML elements.
+Only a single parameter is allowed for each sequence to reduce the possible complexity.
+Several interactions like clicking and entering text are represented as XML elements.
 \todo{More details}
 
 \section{Test Management}
@@ -354,17 +358,31 @@ Clients, running inside VMs, connect to the master node and ask for work.
 A pull based approach is used.
 If no work is available the client goes into a sleep mode and must be awaken by the master.
 To keep the deployment small, no message oriented middleware is used but communication happens over HTTP.
-The VMs containing the client reset to a snapshot to create an untainted test environment.
+The VMs containing the client reset to a snapshot to create a clean and reproducible test environment.
 
 In the future this constellation of master node and clients will be extended by a system provider which can spin up VMs on demand.
 
 All non-binary data is stored inside a relational database.
-The binary data, consisting of images and executables, is stored inside an object storage system.
-The object storage system must provide http based access because the images are needed for the web interface.
+
+The binary data could be stored in an object storage system.
+Such a system would supply a http based interface for storing and retrieving the images and executables.
+Several object storage systems were considered: OpenStack~Swift~\cite{OpenStackSwift}, Riak~S2~\cite{RiakS2} and 
+MongoDB's~\cite{MongoDB} GridFS~\cite{GridFS} combined with RESTHeart~\cite{RESTHeart}.
+OpenStack~Swift and Riak~S2 need a lot of knowledge to configure and maintain.
+Both usually run on a Linux cluster of at least three nodes.
+MongoDB with RESTHeart can easily be installed on a single node and replication can be added as needed.
+OpenStack~Swift may become more interesting in the future if some other part of OpenStack is used.
+For example it could be used to create VMs, store VM images or provide identification.
+
+MongoDB with RESTHeart would be selected for the current version due to the rather simple setup but the proper installation and configuration is too time consuming for this proof on concept.
+Instead the binaries are also stored in the database which should scale sufficiently for the current needs.
+This has the additional advantage that there are no distributed transactions being introduced.
+Otherwise the binary could be uploaded to the object storage system but registering it with the master fails due to the client crashing which would make some form of garbage collection necessary.
 
 The server and clients together are a distributed system.
-Still no health checking is introduced in this version.
-Consul~\cite{Consul} was considered and may be integrated in the future or the system provider does the checking.
+No health checking is introduced in this version.
+Consul~\cite{Consul} was considered and may be integrated in the future or the system provider may do the checking.
+Consul could also be used for discovery of clients and system providers.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% add system overview graphic here
@@ -377,13 +395,12 @@ Scala is used because the developer knows it better than Java.
 The client runs inside a VM which automatically resets on reboot.
 This ensures a reproducible test environment.
 For the current version RollBack Home Edition~\cite{RollBack} is used.
-
-\begin{figure*}[btp]
+\begin{sidewaysfigure}[p]
 	\centering
 	\includegraphics[width=1.0\linewidth]{../img/client_fsm}
 	\caption{Client FSM}
 	\label{fig:fsm}
-\end{figure*}
+\end{sidewaysfigure}
 A finite state machine, as seen in \autoref{fig:fsm}, is used to model the client:
 In the initial state the client asks for work.
 The client goes into sleep mode if no work is available.
@@ -396,40 +413,127 @@ The dirty state therefore initiates a reset.
 An error state is entered when an internal error happens inside the client.
 The client can be configured to automatically reset or leave the system unchanged for inspection.
 
-For the implementation Akka~\cite{Akka}, AkkaFSM~\cite{AkkaFSM} and the Play framework~\cite{Play} are used.
+For the implementation Akka~\cite{Akka}, AkkaFSM~\cite{AkkaFSM}, SikuliX and the Play framework~\cite{Play} are used.
 They all are part of the \emph{Typesafe Reactive Platform}~\cite{TypesafeRP}.
+\todo{scalaxb?}
+
+The proof of concept does not support sequences and does not ask for additional work.
 
 \subsection{Server}
 
 Initially the server only provides an API.
 This API will be augmented by a web interface in the future.
 
-The initial API is specified in Swagger~\cite{Swagger} which is the basis for the \emph{Open API Initiative}~\cite{OpenAPI}.
+The initial API is drafted in Swagger~\cite{Swagger} which is the basis for the \emph{Open API Initiative}~\cite{OpenAPI}.
 Keeping the API completely RESTful was not a concern.
 The structure may also be changed in the future to follow the \emph{JSON API}~\cite{JSONAPI} specification.
 
-\todo{API structure}
+API~Studio~\cite{ApiStudio} was used for live editing and preview of the documentation.
+An excerpt of the generated documentation can be seen in \autoref{fig:apiStudio}
 
-To keep the code bases consistent Akka and the Play framework are used for the implementation.
+\begin{figure*}[]
+	\centering
+	\includegraphics[width=0.8\linewidth]{../img/apiStudio}
+	\caption{API Documentation excerpt generated by API~Studio}
+	\label{fig:apiStudio}
+\end{figure*}
+
+The API mainly consists of a project collection.
+Each project has a collection for reference images, tests and similar entities.
+Some entities like tests are themselves collection of versions.
+
+At this point only the creation of entities and getting information is possible.
+Modification and deletion are not part of this proof of concept.
+There are some additional differences between the API draft and the implemented API.
+The implementation currently returns ids as numbers and not as strings.
+Also some operation like copying a flavour are missing even from the specification.
+These will be developed based on the GUI's need.
+
+Only minimal validation is done.
+Test and sequence specifications are not checked.
+
+To keep the code bases consistent, Akka and the Play framework are used for the implementation.
+Slick~\cite{Slick} is used for database access.
+
 \subsection{Database}
 \VMC{} uses PostgreSQL~\cite{PostgreSQL}.
 Due to the familiarity, it will be used for \Sik{}, too.
 Compatibility to other systems like MariaDB~\cite{MariaDB} was not regarded in this release.
 
-\subsection{Object Storage System}
-Several object storage systems were considered: OpenStack~Swift~\cite{OpenStackSwift}, Riak~S2~\cite{RiakS2} and 
-MongoDB's~\cite{MongoDB} GridFS~\cite{GridFS} combined with RESTHeart~\cite{RESTHeart}.
-OpenStack~Swift and Riak~S2 need a lot of knowledge to configure and maintain.
-Both usually run on a Linux cluster of at least three nodes.
-MongoDB with RESTHeart can easily be installed on a single node.
-Replication can be added as needed.
+The schema is based on the API draft.
+The Slick definitions for the tables were auto-generated by Slick.
+PostgreSQL's array type would require manual mapping to JDBC types.
+The documentation on this is sparse and therefore the planned tagging feature for tests and other objects is not introduced in the proof of concept.
 
-OpenStack~Swift may become more interesting in the future if some other part of OpenStack is used.
-For example it could be used to create VMs, store VM images or provide identification.
+
+\section{Results}
+This proof of concept shows the feasibility of the concept but is also inefficient due to no snapshot support.
+It also shows the problems of engineering systems consisting of many parts and frameworks.
+
+Picking up a new framework takes time and good documentation would help.
+Integrating Play with Slick as a database layer is described in the Play documentation but some crucial parts are left out.
+The necessary information is spread across different pages.
+Configuring Slick differs from the default Play configurations which for example meant searching for two hours to find out that Slick needs an additional \enquote{\#} at the end of the driver class name.
+
+Interestingly enough, error handling in Slick is hidden deep inside the documentation.
+Simply enclosing a Slick query with \texttt{try} and \texttt{catch} does not work.
+Therefore some initial parts of the master crash on database errors due to no error handling.
+Later parts already use the \texttt{asTry} mechanism.
+
+Some things were simply left out because it would have required too much time digging through documentations and Stackoverflow.
+
+The type \texttt{Option} which can be \texttt{Some(wrappedValue)} or \texttt{None} is used in large parts of the master.
+Using \texttt{Try} which can be \texttt{Success(wrappedValue)} or \texttt{Failure(exception)} would be semantically better as return types for functions which may fail like querying the database.
+
+Several days were spent on researching object storage systems.
+None of them are included in this small proof of concept.
+But the time is not lost, for the database will not handle a lot of large binaries so
+an object storage system will be introduced in a future iteration.
+
+Deployment was not a concern so far and therefore no time was spent on creating a production build and packaging.
+These two steps will again require going through the documentation.
+
+
 
 \section{Future Roadmap}
 
-\todo{roadmap}
+\subsection{GUI}
+The system without a GUI is basically useless.
+For the web interface there are two main contenders: Angular~2~\cite{Angular2} or Scala.js~\cite{ScalaJs}.
+Scala.js would keep the whole system in one language and give type safety but requires a fully custom write of the GUI.
+Angular is a common framework for single page application.
+Foundation~\cite{Foundation} would probably be used as the CSS and HTML framework 
+because it is one of the major frameworks and it handles things like accessibility and responsive design.
+
+\subsection{API}
+The API will probably change when the common requests are more clear.
+This should be the case when the GUI is being developed.
+Also the notion of users and roles will be integrated.
+This will also require authentication and authorization.
+
+\subsection{Testing and Static Analysis}
+Testing based on Travis~\cite{Travis} will be set up and static analysers like Scalastyle~\cite{Scalastyle} or Scapegoat~\cite{Scapegoat} may be used.
+Travis can set up a test database which allows running tests against a complete master node.
+This set up will be configured while developing the API.
+The only thing that Travis cannot test is the client.
+
+\subsection{Jenkins Integration}
+Jenkins is used to build \VMC{}.
+Integrating \Sik{} as the last testing step makes sense once the system is in a usable state for the average tester.
+
+\subsection{Documentation}
+The system has to be documented for the administrator and for the end user.
+Currently the system is in state of probable change.
+The documentation will be started while creating the GUI. 
+Inconsistent or lacking documentation of used software was a problem while developing \Sik{}.
+\Sik{} users should be spared from this frustration.
+
+\subsection{DSL}
+The DSL will be developed at later point after creating the GUI and will introduce region support and snapshots.
+The language development should be guided by the experiences made while writing several test specifications in the XML format.
+This will require a large corpus to get a got feeling for common constructs and needed additions.
+
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
