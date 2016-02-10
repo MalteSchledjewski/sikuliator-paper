@@ -490,6 +490,33 @@ The documentation on this is sparse and therefore the planned tagging feature fo
 
 
 \section{Results}
+
+\autoref{lst:EditorXML} shows a simple test which opens the start menu, searches for the editor, opens it and verifies that it started. 
+The matching Sikuliator output is shown in \autoref{lst:EditorOutput}.
+Both files are bundled with SikuliX' debug log and the used images in the documentation.
+
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[language=XML,caption={Example test case specification},label={lst:EditorXML}]
+<?xml version="1.0" encoding="utf-8"?>
+<spec:test name="OpenEditor"  xmlns:spec="http://www.example.org/Sikuliator">
+<spec:click similarity="0.95">WindowsStartButton</spec:click>
+<spec:enterText>
+<spec:text>Editor</spec:text>
+</spec:enterText>
+<spec:click similarity="0.95">EditorButton</spec:click>
+<spec:waitForSomethingToBeThere similarity="0.95" secondsToWait="10">EditorTop</spec:waitForSomethingToBeThere>
+</spec:test>
+\end{lstlisting}
+\end{minipage}
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[caption={Sikuliator's output for the example test case},label={lst:EditorOutput}]
+clicked on WindowsStartButton
+entering text: Editor
+clicked on EditorButton
+found EditorTop
+finished successfully
+\end{lstlisting}
+\end{minipage}
 This proof of concept shows the feasibility of the concept but is also inefficient due to no snapshot support.
 It also shows the problems of engineering systems consisting of many parts and frameworks.
 
@@ -529,7 +556,7 @@ These two steps will again require going through the documentation.
 
 \section{Future Roadmap}
 
-\subsection{GUI}
+\subsection*{GUI}
 The system without a GUI is basically useless.
 For the web interface there are two main contenders: Angular~2~\cite{Angular2} or Scala.js~\cite{ScalaJs}.
 Scala.js would keep the whole system in one language and give type safety but requires a fully custom write of the GUI.
@@ -537,23 +564,23 @@ Angular is a common framework for single page application.
 Foundation~\cite{Foundation} would probably be used as the CSS and HTML framework 
 because it is one of the major frameworks and it handles things like accessibility and responsive design.
 
-\subsection{API}
+\subsection*{API}
 The API will probably change when the common requests are more clear.
 This should be the case when the GUI is being developed.
 Also the notion of users and roles will be integrated.
 This will also require authentication and authorization.
 
-\subsection{Testing and Static Analysis}
+\subsection*{Testing and Static Analysis}
 Testing based on Travis~\cite{Travis} will be set up and static analysers like Scalastyle~\cite{Scalastyle} or Scapegoat~\cite{Scapegoat} may be used.
 Travis can set up a test database which allows running tests against a complete master node instead of mocks.
 This set up will be configured while developing the API.
 The only thing that Travis cannot test is the client.
 
-\subsection{Jenkins Integration}
+\subsection*{Jenkins Integration}
 Jenkins is used to build \VMC{}.
 Integrating \Sik{} as the last testing step makes sense once the system is in a usable state for the average tester.
 
-\subsection{Documentation}
+\subsection*{Documentation}
 The system has to be documented for the administrator and for the end user.
 Currently the system is in state of probable frequent change.
 The documentation will be started while creating the GUI. 
@@ -561,7 +588,7 @@ Only the design documents like the API spec or the clients finite state machine 
 Inconsistent or lacking documentation of used software was a problem while developing \Sik{}.
 \Sik{} users should be spared from this frustration.
 
-\subsection{DSL}
+\subsection*{DSL}
 The DSL will be developed at a later point in time after creating the GUI and it will introduce region support and snapshots.
 The language development should be guided by the experiences made while writing several test specifications in the XML format.
 This will require a large corpus to get a got feeling for common constructs and needed additions.
