@@ -9,7 +9,7 @@
 \usepackage[stretch=10]{microtype} % improves font placements
 %\usepackage{graphicx}
 \usepackage[breaklinks, colorlinks,draft=false
-%, citecolor=black, filecolor=black, linkcolor=black, urlcolor=black ,pdfborder=0
+, citecolor=black, filecolor=black, linkcolor=black, urlcolor=black ,pdfborder=0
 ]{hyperref}
 
 
@@ -161,7 +161,7 @@
 %\setlength{\parindent}{0cm}
 \maketitle
 \begin{abstract}
-	This paper describes the development of \Sik{}, 
+	This paper describes the development of \Sik{}~\cite{Sikuliator}, 
 	a free system for automated GUI testing distributed across many machines.
 	It currently is a proof of concept consisting of a central web server offering an API and 
 	a client software which executes tests.
@@ -177,8 +177,8 @@ The first version of \Sik{} is designed to suit the
 \emph{\VMC{} - Virtual Measurement Campaign}~\cite{VMConline} developer team's needs in the
 department \emph{Mathematical Methods in Dynamics and Durability} 
 at the Fraunhofer Institute for Industrial Mathematics ITWM.
-\VMC{} is an application based on clients and a central database.
-The clients are written in C++ and use the Qt Framework.
+\VMC{} is an application based on a client and a central database.
+The client is largely written in C++ and use the Qt Framework.
 For some part of the client an embedded browser based on Qt WebEngine is used.
 
 GUI testing \VMC{} is a time consuming task for the team.
@@ -236,9 +236,9 @@ The main challenges are believed to be:
 \section{Ideas and Features}
 \paragraph{Legend}
 \begin{itemize}
-	\implemented implemented in the first version
-	\partiallyImplemented partially implemented in the first version
-	\notImplemented not implemented in the first version
+	\implemented implemented,
+	\partiallyImplemented partially implemented,
+	\notImplemented not implemented in the proof of concept
 \end{itemize}
 	
 	Possible features and other ideas like possible integration were gathered together with some \VMC{} developers.
@@ -278,10 +278,12 @@ The available time is limited and therefore the first version's scope is reduced
 It is a proof of concept.
 Some parts like snapshots do not have a high priority because \VMC{} has external state in the database which is not captured by the snapshots. 
 Also no coverage data is currently gathered so instrumenting the build would cost too much time. 
-SikuliX's region support increases the complexity of describing tests and will therefore only be integrated in a later version.
+SikuliX supports regions which are parts of the screen.
+Instead of searching the whole screen SikuliX can be told to only search a region which can save a lot of time. 
+Support for regions increases the complexity of describing tests and will therefore only be integrated in a later version.
 
 \Sik{} will run in the intranet at the ITWM.
-Also it will at first be used my a limited amount of testers.
+Also it will at first be used by a limited amount of testers.
 Therefore no user or rights management will be necessary for the initial version.
 
 \Sik{} will offer an API but no GUI or means to create reports at first.
@@ -311,40 +313,52 @@ Click 20px to the left and 10px down
 This format is only intended for the initial development.
 It does not include advanced features like snapshots or region support.
 Simplicity and ease of implementation are favoured over expressiveness.
-The basic structure is described in a XML schema.
+For example, there is no way to enter special keys or keyboard combinations.
 
-Tests can use reusable sequences.
+Tests do not have parameters but can use reusable sequences.
 Only a single parameter is allowed for each sequence to reduce the possible complexity.
 Several interactions like clicking and entering text are represented as XML elements.
-\todo{More details}
+
+The basic structure is described in a XML schema.
+It is not capable of modelling all concepts or restrictions.
+Still, XML schema can be used in many programming languages to generate boilerplate code.
 
 \section{Test Management}
-\todo{rewrite}
-Managing tests for different projects, operating systems and software versions allows for many possible ways to organize tests.
-The project is used as the highest level.
-It is the container of all tests, sequences and images.
-The need for reusable libraries of common sequences and images is deemed to be too low.
+The project is at the top of the hierarchy.
+It represents a container for all reference images, tests, et~cetera.
+The need for reusable libraries of common objects is deemed to be too low because they can be reused inside the project.
 If user feedback suggest sufficient demand, it may be added in the future.
 
-Projects can have many flavours.
-A flavour holds a tree of tests.
-Each inner node is named and all leaves are tests.
+The tests and reference images will differ by things like operating system or different product version.
+Therefore the notion of a project flavour is introduced.
+This concept is more flexible than having project configurations with fixed aspects like operating system or product version.
+It allows the user to have all needed combinations in parallel.
+Forcing, for example, a hierarchy of version on top with operating system below may become problematic for products that have different version numbers per operating system.
+
+In the future there may be a way for the user to define aspects like \enquote{operating system} or \enquote{back end}.
+Another way would be to tag the flavours.
+The hierarchy may therefore change in the future based on feedback and experience.
+
+A flavour is basically a collection of tests.
+The tests are organized in a tree structure with tests as leave nodes and category names as inner nodes.
 This mirrors a typical folder structure.
-Flavours can be tagged.
 
-There is only the generic concept of flavours to differentiate across version numbers and versions for different operating systems.
-This is done because there is the use case where it makes sense to have the version number below the operating systems flavours, when for example they use different release cycles.
-The inverse may also be sensible if one product should be tested across different operating systems.
-Neither approach seem superior.
-In the future there may be a way for the user to define aspects like \enquote{operating system} or \enquote{back end}. Then the structure will be revisited.
-
-Each image, sequence and test can have many versions.
+Each image, sequence and test can have different versions.
+Versions are immutable so that results are auditable.
 Each version other than the first has a predecessor version.
 The versions build a tree based on this relationship.
-Images, sequences and tests can be tagged.
+Images, sequences and tests will be taggable in the future to make them easier to find.
 
-Which image, sequence or test version to use is specified at the flavour level to keep consistency.
+Which image, sequence or test version to use is specified at the flavour level.
+Another option would be to specify the image and sequence version for each test version.
+This would cause a need to create a new test version for all tests whenever a new image or sequence is used.
+Changing the version at the flavour level is far simpler.
+It also keeps consistency across the different tests in a flavour.
+Otherwise calling a sequence in one test may do something different than a call in another test of the same flavour or reference images may be different.
+This would reduce the readability of tests because one would have to keep in mind the currently used versions.
+
 If a new version is created all flavours containing the direct predecessor get notified.
+The flavour may then be updated to use the new version.
 
 \section{First Version}
 \subsection{Architecture}
@@ -354,18 +368,20 @@ It will be provided by the so called master node.
 The master provides a web API (not necessarily RESTful) which will be used by the web interface.
 All tests and their executions are managed by the master node.
 
-Clients, running inside VMs, connect to the master node and ask for work.
+Clients, running inside VMs, connect to the master node and periodically ask for work.
 A pull based approach is used.
-If no work is available the client goes into a sleep mode and must be awaken by the master.
+%If no work is available the client goes into a sleep mode and must be awaken by the master.
 To keep the deployment small, no message oriented middleware is used but communication happens over HTTP.
 The VMs containing the client reset to a snapshot to create a clean and reproducible test environment.
 
 In the future this constellation of master node and clients will be extended by a system provider which can spin up VMs on demand.
+So that VMs do not have to run all the time.
 
 All non-binary data is stored inside a relational database.
 
 The binary data could be stored in an object storage system.
-Such a system would supply a http based interface for storing and retrieving the images and executables.
+Such a system would supply a http based interface for storing and retrieving the images and executables
+so that the GUI could access the images.
 Several object storage systems were considered: OpenStack~Swift~\cite{OpenStackSwift}, Riak~S2~\cite{RiakS2} and 
 MongoDB's~\cite{MongoDB} GridFS~\cite{GridFS} combined with RESTHeart~\cite{RESTHeart}.
 OpenStack~Swift and Riak~S2 need a lot of knowledge to configure and maintain.
@@ -402,22 +418,28 @@ For the current version RollBack Home Edition~\cite{RollBack} is used.
 	\label{fig:fsm}
 \end{sidewaysfigure}
 A finite state machine, as seen in \autoref{fig:fsm}, is used to model the client:
-In the initial state the client asks for work.
-The client goes into sleep mode if no work is available.
+In the initial state the client asks periodically for work.
+The client stays in the initial state if no work is available.
 Otherwise it goes into execution state and tries to execute the given commands.
 The client goes into an upload state after completing the execution.
 After successfully uploading the images and results the client goes into the work fetching state or the dirty state depending on whether the test was successful.
 A failed tests leaves the program in an undefined state.
 The dirty state therefore initiates a reset.
 
-An error state is entered when an internal error happens inside the client.
-The client can be configured to automatically reset or leave the system unchanged for inspection.
+An dirty state is also entered when an internal error happens inside the client.
+In the future the client can be configured to automatically reset or leave the system unchanged for inspection.
 
 For the implementation Akka~\cite{Akka}, AkkaFSM~\cite{AkkaFSM}, SikuliX and the Play framework~\cite{Play} are used.
 They all are part of the \emph{Typesafe Reactive Platform}~\cite{TypesafeRP}.
-\todo{scalaxb?}
+Scalaxb~\cite{scalaxb} was used to create Scala case classes and a parser based on the test specifications XML schema.
 
 The proof of concept does not support sequences and does not ask for additional work.
+Not all operations are implemented.
+
+The finite state machine is running as a AkkaFSM which has child actors for fetching work, uploading results and executing the test.
+The error handling of Akka actors was not implemented.
+Akka actors also have the drawback of not being type safe.
+There is the Akky~Typed~\cite{AkkaTyped} project but it is still experimental.
 
 \subsection{Server}
 
@@ -431,7 +453,7 @@ The structure may also be changed in the future to follow the \emph{JSON API}~\c
 API~Studio~\cite{ApiStudio} was used for live editing and preview of the documentation.
 An excerpt of the generated documentation can be seen in \autoref{fig:apiStudio}
 
-\begin{figure*}[]
+\begin{figure*}[htbp]
 	\centering
 	\includegraphics[width=0.8\linewidth]{../img/apiStudio}
 	\caption{API Documentation excerpt generated by API~Studio}
@@ -445,9 +467,10 @@ Some entities like tests are themselves collection of versions.
 At this point only the creation of entities and getting information is possible.
 Modification and deletion are not part of this proof of concept.
 There are some additional differences between the API draft and the implemented API.
-The implementation currently returns ids as numbers and not as strings.
+The implementation currently returns IDs as numbers and not as strings.
 Also some operation like copying a flavour are missing even from the specification.
 These will be developed based on the GUI's need.
+The notification for flavours about new versions was also left out.
 
 Only minimal validation is done.
 Test and sequence specifications are not checked.
@@ -461,7 +484,7 @@ Due to the familiarity, it will be used for \Sik{}, too.
 Compatibility to other systems like MariaDB~\cite{MariaDB} was not regarded in this release.
 
 The schema is based on the API draft.
-The Slick definitions for the tables were auto-generated by Slick.
+The Slick definitions for the tables were generated by slick-codegen.
 PostgreSQL's array type would require manual mapping to JDBC types.
 The documentation on this is sparse and therefore the planned tagging feature for tests and other objects is not introduced in the proof of concept.
 
@@ -480,10 +503,19 @@ Simply enclosing a Slick query with \texttt{try} and \texttt{catch} does not wor
 Therefore some initial parts of the master crash on database errors due to no error handling.
 Later parts already use the \texttt{asTry} mechanism.
 
-Some things were simply left out because it would have required too much time digging through documentations and Stackoverflow.
+Some things were simply left out because it would have required too much time digging through documentations and Stackoverflow. An example is the clients's actor system shutdown because Play's dependency injection and Akka actors do not work together out of the box.
 
+Another problem was the use of different build systems across the dependencies.
+\Sik{} uses SBT~\cite{SBT} which is the common Scala build system.
+SikuliX uses Maven.
+The POM files use profiles to differentiate between Linux, Mac and Windows.
+SBT does not support profiles.
+Therefore the SikuliX libraries had to be manually downloaded and added to the project's classpath.
+
+Writing idiomatic Scala and using the libraries' and frameworks' best practices takes experience.
 The type \texttt{Option} which can be \texttt{Some(wrappedValue)} or \texttt{None} is used in large parts of the master.
-Using \texttt{Try} which can be \texttt{Success(wrappedValue)} or \texttt{Failure(exception)} would be semantically better as return types for functions which may fail like querying the database.
+Using \texttt{Try} which can be \texttt{Success(wrappedValue)} or \texttt{Failure(exception)} would be semantically better as return types for functions which may fail like for example querying the database.
+Static analysers may also help to increase code quality.
 
 Several days were spent on researching object storage systems.
 None of them are included in this small proof of concept.
@@ -513,7 +545,7 @@ This will also require authentication and authorization.
 
 \subsection{Testing and Static Analysis}
 Testing based on Travis~\cite{Travis} will be set up and static analysers like Scalastyle~\cite{Scalastyle} or Scapegoat~\cite{Scapegoat} may be used.
-Travis can set up a test database which allows running tests against a complete master node.
+Travis can set up a test database which allows running tests against a complete master node instead of mocks.
 This set up will be configured while developing the API.
 The only thing that Travis cannot test is the client.
 
@@ -523,13 +555,14 @@ Integrating \Sik{} as the last testing step makes sense once the system is in a 
 
 \subsection{Documentation}
 The system has to be documented for the administrator and for the end user.
-Currently the system is in state of probable change.
+Currently the system is in state of probable frequent change.
 The documentation will be started while creating the GUI. 
+Only the design documents like the API spec or the clients finite state machine are available until then.
 Inconsistent or lacking documentation of used software was a problem while developing \Sik{}.
 \Sik{} users should be spared from this frustration.
 
 \subsection{DSL}
-The DSL will be developed at later point after creating the GUI and will introduce region support and snapshots.
+The DSL will be developed at a later point in time after creating the GUI and it will introduce region support and snapshots.
 The language development should be guided by the experiences made while writing several test specifications in the XML format.
 This will require a large corpus to get a got feeling for common constructs and needed additions.
 
